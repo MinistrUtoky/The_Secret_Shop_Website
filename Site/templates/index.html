@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 style="padding-bottom: 20px; text-align: left">Products</h1>
+{% for item in lots%}
+<div class="col-md6 border rounded">
+    <h2>Product: {{item.title}}</h2>
+    <h3 style="font-size: 30px">Price: {{item.price}}</h3>
+    <div>
+        {{item.content}}
+    </div>
+    {% if current_user.is_authenticated and current_user == item.user %}
+    <div style="padding-top: 20px; padding-bottom: 20px">
+        <a href="/lots/{{ item.id }}" class="btn btn-dark">Change</a>
+        <a href="/del_lots/{{ item.id }}" class="btn btn-danger">Delete</a>
+    </div>
+    {% endif %}
+    <div>
+        {{item.user.name}}, {{item.created_date}}
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
