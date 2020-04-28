@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .rating {
+        overflow: hidden;
+        width: 265px;
+        margin: 0 auto;
+    }
+    .rating:not(:checked) > input {
+        display: none;
+    }
+    .rating:not(:checked) > label {
+        float: right;
+        width: 42px;
+        padding: 0;
+        cursor: pointer;
+        font-size: 50px;
+        line-height: 50px;
+        color: lightgrey;
+        text-shadow: 1px 1px #bbb;
+    }
+    .rating:not(:checked) > label:before {
+        content: '★';
+    }
+    .rating > input:checked ~ label {
+        color: gold;
+        text-shadow: 1px 1px #c60;
+    }
+    .rating:not(:checked) > label:hover,
+    .rating:not(:checked) > label:hover ~ label {
+        color: gold;
+    }
+    .rating > input:checked + label:hover,
+    .rating > input:checked + label:hover ~ label,
+    .rating > input:checked ~ label:hover,
+    .rating > input:checked ~ label:hover ~ label,
+    .rating > label:hover ~ input:checked ~ label {
+        color: gold;
+        text-shadow: 1px 1px goldenrod;
+    }
+    .rate-area > label:active {
+        position: relative;
+    }
+</style>
+<h1>Reviewing</h1>
+<form action="" method="post">
+    {{ form.hidden_tag() }}
+    {{ form.csrf_token }}
+    <p>
+        {{ form.ball.label }}<br>
+        {{ form.ball(class="form-control") }}<br>
+        {% for error in form.ball.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.review.label }}<br>
+        {{ form.review(class="form-control") }}<br>
+        {% for error in form.review.errors %}
+            <p content="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    <div class="rating">
+        <input type="radio" id="star-5" name="rating" value="5">
+        <label for="star-5" title="absoluetly not poop"></label>
+        <input type="radio" id="star-4" name="rating" value="4">
+        <label for="star-4" title="not poop"></label>
+        <input type="radio" id="star-3" name="rating" value="3">
+        <label for="star-3" title="almost poop"></label>
+        <input type="radio" id="star-2" name="rating" value="2">
+        <label for="star-2" title="poop"></label>
+        <input type="radio" id="star-1" name="rating" value="1">
+        <label for="star-1" title="very poop"></label>
+    </div>
+    <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+    <div>{{message}}</div>
+</form>
+{% endblock %}

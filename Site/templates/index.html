@@ -11,13 +11,18 @@
     </div>
     {% if current_user.is_authenticated and current_user == item.user %}
     <div style="padding-top: 20px; padding-bottom: 20px">
-        <a href="/lots/{{ item.id }}" class="btn btn-dark">Change</a>
-        <a href="/del_lots/{{ item.id }}" class="btn btn-danger">Delete</a>
+        <a href="../lots/{{ item.id }}" class="btn btn-dark">Change</a>
+        <a href="../del_lots/{{ item.id }}" class="btn btn-danger">Delete</a>
     </div>
     {% endif %}
     <div>
         {{item.user.name}}, {{item.created_date}}
     </div>
+    {% if current_user != item.user %}
+    <div>
+        <a href="../{{ item.user.id }}" class="btn btn-light">Buy</a>
+    </div>
+    {% endif %}
 </div>
 {% endfor %}
 {% endblock %}

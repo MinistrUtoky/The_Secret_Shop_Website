@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>{{ user.name }}'s profile</h1>
+    {% for i in range(user_rating_int) %}
+        <nobr style="white-space: pre; color: orange">★</nobr>
+    {% endfor %}
+    <div style="font-weight: bold">{{user_rating_float}}</div>
+    <a href="/{{user.id}}/reviews" class="btn btn-light" style="font-size: 30px">Review</a>
+    <hr>
+    <h2>Contact information: +7{{user.contacts}}</h2>
+    <hr>
+    <h4 style="padding-bottom: 20px; text-align: left">Products</h4>
+    {% for item in lots%}
+        <div class="col-md6 border rounded">
+            <h5>Product: {{item.title}}</h5>
+            <h6 style="font-size: 20px">Price: {{item.price}}</h6>
+            <div>
+                {{item.content}}
+            </div>
+            {% if current_user.is_authenticated and current_user == item.user %}
+                <div style="padding-top: 20px; padding-bottom: 20px">
+                    <a href="/lots/{{ item.id }}" class="btn btn-dark">Change</a>
+                    <a href="/del_lots/{{ item.id }}" class="btn btn-danger">Delete</a>
+                </div>
+            {% endif %}
+            <div>
+                {{item.created_date}}
+            </div>
+        </div>
+    {% endfor %}
+    <hr>
+    <h4 style="padding-bottom: 20px; text-align: left">Reviews: {{ lenght }}</h4>
+    {% if reviews != None %}
+    {% for review in reviews%}
+        <div class="col-md-5 border rounded">
+            <div style="font-weight: bold">
+                {{review.ball}}
+            </div>
+            <div style="word-wrap: break-word">
+                {{review.review}}
+            </div>
+            <div>
+                {% for ball in range(review.rating) %}
+                    <nobr style="white-space: pre; color: orange">★</nobr>
+                {% endfor %}
+            </div>
+            <div>
+                By {{review.author}} from: {{review.review_date}}
+            </div>
+            {% if current_user.is_authenticated and current_user.name == review.author %}
+                <div style="padding-top: 20px; padding-bottom: 20px">
+                    <a href="../reviews/{{review.id}}" class="btn btn-dark">Change</a>
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+    {% endif %}
+{% endblock %}

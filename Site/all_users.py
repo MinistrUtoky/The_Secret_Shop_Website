@@ -12,10 +12,12 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    contacts = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
     hashed_password = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     created_date = sqlalchemy.Column(sqlalchemy.DateTime,
                                      default=datetime.datetime.now)
     lots = orm.relation("Lots", back_populates='user')
+    reviews = orm.relation("Reviews", back_populates='user')
 
     def set_password(self, password):
         self.hashed_password = werkzeug.security.generate_password_hash(password)

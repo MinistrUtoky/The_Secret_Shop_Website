@@ -7,7 +7,7 @@ from flask_login import LoginManager, logout_user, login_user, login_required, c
 from flask_ngrok import run_with_ngrok
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired
-from Site import db_session, all_users, all_lots, lots_res
+from Site import db_session, all_users, all_lots, lots_res, all_reviews
 
 app = Flask(__name__)
 api = Api(app)
@@ -26,10 +26,17 @@ def main():
     app.run()
 
 
+class ReviewForm(FlaskForm):
+    review = TextAreaField('Review:', validators=[DataRequired()])
+    ball = StringField("Title", validators=[DataRequired()])
+    submit = SubmitField('Estimate')
+
+
 class RegisterForm(FlaskForm):
     name = StringField('Nickname', validators=[DataRequired()])
+    contacts = StringField('10 digits phone number', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
-    password_again = PasswordField('Password again:', validators=[DataRequired()])
+    password_again = PasswordField('Password again  ', validators=[DataRequired()])
     submit = SubmitField('Create account')
 
 
@@ -127,6 +134,14 @@ def index():
     return render_template('/index.html', lots=lots)
 
 
+@app.before_request
+def before_request():
+    if current_user.is_authenticated:
+        session = db_session.create_session()
+        current_user.last_seen = datetime.datetime.utcnow()
+        session.commit()
+
+
 @app.route('/chat')
 @login_required
 def chat():
@@ -151,13 +166,24 @@ def register():
             return render_template('register.html', title='Registration',
                                    form=form,
                                    message="Password mismatch")
+        try:
+            int(form.contacts.data)
+        except:
+            return render_template('register.html', title='Registration',
+                                   form=form,
+                                   message="Incorrect contact number")
+        if len(form.contacts.data) != 10:
+            return render_template('register.html', title='Registration',
+                                   form=form,
+                                   message="Number is too short or too long")
         session = db_session.create_session()
         if session.query(all_users.User).filter(all_users.User.name == form.name.data).first():
             return render_template('register.html', title='Registration',
                                    form=form,
                                    message="There is at least the one user that have such nickname as your")
         user = all_users.User(
-            name=form.name.data
+            name=form.name.data,
+            contacts=form.contacts.data
         )
         user.set_password(form.password.data)
         session.add(user)
@@ -179,6 +205,80 @@ def login():
                                message="Wrong password or nickname",
                                form=form)
     return render_template('login.html', title='Authorize', form=form)
+
+
+@app.route('/<user_id>')
+@login_required
+def profile(user_id):
+    session = db_session.create_session()
+    user = session.query(all_users.User).filter_by(id=user_id).first()
+    if user:
+        reviews = session.query(all_reviews.Reviews).filter_by(user_id=user_id)
+        user_rating = 0
+        for i in reviews:
+            user_rating += i.rating
+        if len(user.reviews) != 0:
+            user_rating /= len(user.reviews)
+        lots = session.query(all_lots.Lots).filter_by(user_id=user_id)
+        return render_template('profile.html', user=user, lenght=str(len(user.reviews)), lots=lots, reviews=reviews,
+                               user_rating_float=float(user_rating), user_rating_int=int(user_rating))
+
+
+@app.route('/<user_id>/reviews', methods=['GET', 'POST'])
+@login_required
+def make_review(user_id):
+    form = ReviewForm()
+    if form.validate_on_submit():
+        session = db_session.create_session()
+        user = session.query(all_users.User).filter_by(id=user_id).first()
+        if current_user == user:
+            return render_template('review_maker.html',
+                                   message="You can't review yourself",
+                                   form=form)
+        for review in user.reviews:
+            if current_user.name == review.author:
+                return render_template('review_maker.html',
+                                       message="You already reviewed this user",
+                                       form=form)
+        review = all_reviews.Reviews()
+        review.review = form.review.data
+        review.ball = form.ball.data
+        review.author = current_user.name
+        review.rating = request.form['rating']
+        user.reviews.append(review)
+        session.merge(user)
+        session.commit()
+        return redirect('../' + str(user_id))
+    return render_template('review_maker.html', title='Reviewing', form=form)
+
+
+@app.route('/reviews/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_review(id):
+    form = ReviewForm()
+    if request.method == "GET":
+        session = db_session.create_session()
+        reviews = session.query(all_reviews.Reviews).filter(all_reviews.Reviews.id == id,
+                                                            all_reviews.Reviews.author == current_user.name).first()
+        if reviews:
+            form.review.data = reviews.review
+            form.ball.data = reviews.ball
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        session = db_session.create_session()
+        reviews = session.query(all_reviews.Reviews).filter(all_reviews.Reviews.id == id,
+                                                            all_reviews.Reviews.author == current_user.name).first()
+        if reviews:
+            reviews.review = form.review.data
+            reviews.ball = form.ball.data
+            reviews.author = current_user.name
+            reviews.rating = request.form['rating']
+            session.commit()
+            return redirect('../' + str(reviews.user_id))
+        else:
+            abort(404)
+    return render_template('review_maker.html', title='Rereviewing', form=form)
 
 
 @app.route('/lots', methods=['GET', 'POST'])

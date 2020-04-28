@@ -32,6 +32,15 @@
             </p>
         {% endfor %}
     </p>
+    <p>
+        {{ form.contacts.label }}<br>
+        <div>+7 {{ form.contacts(class="form-control") }}</div><br>
+        {% for error in form.contacts.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
     <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
     {{message}}
 </form>

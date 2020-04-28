@@ -32,20 +32,20 @@
     <nav class="navbar navbar-light bg-light">
         <a class="navbar-brand" href="/">Main</a>
         {% if current_user.is_authenticated %}
-        <a href="lots" class="btn btn-secondary">Create the lot</a>
-        <a href="chat" class="btn btn-secondary">Chat(ENG)</a>
+        <a href="../{{ current_user.id }}" class="btn btn-secondary">My profile</a>
+        <a href="../lots" class="btn btn-secondary">Create the lot</a>
+        <a href="../chat" class="btn btn-secondary">Chat(ENG)</a>
         {% endif %}
         {% if current_user.is_authenticated %}
-        <a class="navbar-brand" href="logout">{{ current_user.name }}/Logout</a>
+        <a class="navbar-brand" href="../logout">{{ current_user.name }}/Logout</a>
         {% else %}
         <p>
-            <a class="navbar-brand" href="register">Registration</a>
-            <a class="navbar-brand" href="login"><Enter>Login</Enter></a>
+            <a class="navbar-brand" href="../register">Registration</a>
+            <a class="navbar-brand" href="../login"><Enter>Login</Enter></a>
         </p>
         {% endif %}
     </nav>
 </header>
-<!-- Begin page content -->
 <main role="main" class="container">
     {% block content %}{% endblock %}
 </main>
