@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Dialog between <u>{{second_user.name}}</u> and <u>{{ user.name }}</u></h2>
+<div style="overflow-y:scroll; height:500px; overflow-anchor: none" id="scroll_area">
+    {% for m in chat %}
+        {% if m.author == current_user.id %}
+            <h3 style="text-align: right">{{m.msg}} <u>{{current_user.name}}</u></h3>
+        {% endif %}
+        {% if m.author != current_user.id %}
+            {% if second_user == current_user %}
+                <h3><u>{{ user.name }}</u> {{m.msg}}</h3>
+            {% endif %}
+            {% if user == current_user %}
+                <h3><u>{{ second_user.name }}</u> {{m.msg}}</h3>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>
+<script type="text/javascript">
+var scrolled = false;
+function updateScroll(){
+    if(!scrolled){
+        var area = document.getElementById("scroll_area");
+        area.scrollTop = area.scrollHeight;
+    }
+}
+
+$("#scroll_area").on('scroll', function(){
+    scrolled=true;
+});
+updateScroll()
+</script>
+<form action="" method="post">
+    {{ form.hidden_tag() }}
+    {{ form.csrf_token }}
+    <p>
+        {{ form.msg.label }}<br>
+        {{ form.msg(class="form-control") }}<br>
+        {% for error in form.msg.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    <p>{{ form.send(type="submit", class="btn btn-primary") }}</p>
+</form>
+{% endblock %}

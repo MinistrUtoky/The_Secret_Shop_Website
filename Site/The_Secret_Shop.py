@@ -7,7 +7,7 @@ from flask_login import LoginManager, logout_user, login_user, login_required, c
 from flask_ngrok import run_with_ngrok
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired
-from Site import db_session, all_users, all_lots, lots_res, all_reviews
+from Site import db_session, all_users, all_lots, lots_res, all_reviews, all_messages
 
 app = Flask(__name__)
 api = Api(app)
@@ -52,6 +52,11 @@ class LotsForm(FlaskForm):
     content = TextAreaField('Description')
     price = StringField('Price', validators=[DataRequired()])
     submit = SubmitField('Accept')
+
+
+class MessageForm(FlaskForm):
+    msg = StringField('Message', validators=[DataRequired()])
+    send = SubmitField('Send')
 
 
 @blueprint.route('/api/lots')
@@ -148,6 +153,51 @@ def chat():
     return render_template('session.html', user=current_user)
 
 
+@app.route('/chats')
+@login_required
+def active_chats():
+    session = db_session.create_session()
+    users = session.query(all_users.User)
+    for user in users:
+        x = 0
+    return render_template('chat_list.html')
+
+
+@app.route('/<user_id>/<second_user_id>', methods=['GET', 'POST'])
+@login_required
+def local_chat(user_id, second_user_id):
+    if user_id == second_user_id:
+        return redirect('../' + str(user_id))
+    if current_user.id != int(second_user_id) and current_user.id != int(user_id):
+        return redirect('../' + str(user_id))
+    if int(second_user_id) < int(user_id):
+        return redirect('../' + second_user_id + '/' + user_id)
+    session = db_session.create_session()
+    chat = session.query(all_messages.Messages).filter_by(first_user_id=user_id,
+                                                          second_user_id=second_user_id)
+    if current_user.id == int(second_user_id):
+        user = session.query(all_users.User).filter_by(id=user_id).first()
+    else:
+        user = session.query(all_users.User).filter_by(id=second_user_id).first()
+    form = MessageForm()
+    if form.validate_on_submit():
+        message = all_messages.Messages()
+        message.msg = form.msg.data
+        message.first_user_id = user_id
+        message.second_user_id = second_user_id
+        message.author = current_user.id
+        user.messages.append(message)
+        session.merge(user)
+        session.commit()
+        return redirect('../' + user_id + '/' + second_user_id)
+    if current_user.id == int(second_user_id):
+        return render_template('1vs1_session.html', user=user, second_user=current_user,
+                               form=form, chat=chat)
+    else:
+        return render_template('1vs1_session.html', user=current_user, second_user=user,
+                               form=form, chat=chat)
+
+
 def messageReceived(methods=['GET', 'POST']):
     print('received')
 
@@ -212,6 +262,20 @@ def login():
 def profile(user_id):
     session = db_session.create_session()
     user = session.query(all_users.User).filter_by(id=user_id).first()
+    users = session.query(all_users.User)
+    dialogs = {}
+    for u in users:
+        for message in u.messages:
+            if current_user.id == int(user_id):
+                print(int(user_id))
+                if message.second_user_id == int(user_id):
+                    dialog_with = message.first_user_id
+                    name = session.query(all_users.User).filter_by(id=message.first_user_id).first().name
+                    dialogs[dialog_with] = name
+                elif message.first_user_id == int(user_id):
+                    dialog_with = message.second_user_id
+                    name = session.query(all_users.User).filter_by(id=message.second_user_id).first().name
+                    dialogs[dialog_with] = name
     if user:
         reviews = session.query(all_reviews.Reviews).filter_by(user_id=user_id)
         user_rating = 0
@@ -221,7 +285,7 @@ def profile(user_id):
             user_rating /= len(user.reviews)
         lots = session.query(all_lots.Lots).filter_by(user_id=user_id)
         return render_template('profile.html', user=user, lenght=str(len(user.reviews)), lots=lots, reviews=reviews,
-                               user_rating_float=float(user_rating), user_rating_int=int(user_rating))
+                               user_rating_float=float(user_rating), user_rating_int=int(user_rating), dias=dialogs)
 
 
 @app.route('/<user_id>/reviews', methods=['GET', 'POST'])

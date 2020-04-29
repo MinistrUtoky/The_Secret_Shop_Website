@@ -13,7 +13,7 @@
 <div style="padding-top: 60px" class="message_holder"></div>
 <form action="" method="POST">
   <c id="name">{{ user.name }}</c>
-  <input type="text" class="message" placeholder="ONLY IN ENGLISH"/>
+  <input type="text"  class="message" charset="UTF-8" placeholder="ONLY IN ENGLISH"/>
   <input type="submit" value="Send"/>
 </form>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
@@ -39,7 +39,7 @@
     console.log( msg )
     if( typeof msg.user_name !== 'undefined' ) {
       $( 'h3' ).remove()
-      $( 'div.message_holder' ).append( '<div><b style="color: #000000">'+msg.user_name +'</b> '+msg.message+'</div>' )
+      $( 'div.message_holder' ).append( '<div><b style="font-weight: bold">'+msg.user_name +'</b> '+msg.message+'</div>' )
     }
     })
 </script>

@@ -18,6 +18,7 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
                                      default=datetime.datetime.now)
     lots = orm.relation("Lots", back_populates='user')
     reviews = orm.relation("Reviews", back_populates='user')
+    messages = orm.relation("Messages", back_populates='user')
 
     def set_password(self, password):
         self.hashed_password = werkzeug.security.generate_password_hash(password)

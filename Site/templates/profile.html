@@ -9,6 +9,10 @@
     <a href="/{{user.id}}/reviews" class="btn btn-light" style="font-size: 30px">Review</a>
     <hr>
     <h2>Contact information: +7{{user.contacts}}</h2>
+    <a href="../{{user.id}}/{{current_user.id}}" class="btn btn-light" style="font-size: 30px">Chat with</a>
+    {% for dia in dias: %}
+    <a href="../{{dia}}/{{current_user.id}}" class="btn btn-light" style="font-size: 30px">{{dias[dia]}}</a>
+    {% endfor %}
     <hr>
     <h4 style="padding-bottom: 20px; text-align: left">Products</h4>
     {% for item in lots%}
